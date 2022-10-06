@@ -1,5 +1,5 @@
-from urllib.parse import urlparse
 import json, hmac, hashlib, time, base64, uuid, requests
+from urllib.parse import urlparse
 from dash import Input, Output, State
 from keys import PORTFOLIO_ID, API_KEY, PASSPHRASE, SECRET_KEY
 
@@ -16,11 +16,9 @@ def prime_calls(app):
         for i in range(2):
             product = product_selection.split('-')[i]
             uri = f'https://api.prime.coinbase.com/v1/portfolios/{PORTFOLIO_ID}/balances?symbols={product}&balance_type=TRADING_BALANCES'
-
-            method = 'GET'
-
+            METHOD = 'GET'
             url_path = urlparse(uri).path
-            message = timestamp + method + url_path
+            message = timestamp + METHOD + url_path
             signature = hmac.digest(SECRET_KEY.encode('utf-8'), message.encode('utf-8'), hashlib.sha256)
             signature_b64 = base64.b64encode(signature)
 
@@ -83,10 +81,5 @@ def prime_calls(app):
 
             response = requests.post(uri, json=payload, headers=headers)
             parsed_response = json.loads(response.text)
+
             return json.dumps(parsed_response, indent=3)
-
-            # print(f'amount: {amount}')
-            # print(f'buy/sell: {buysell}')
-            # print(f'asset: {asset}')
-            # print(f'clicks: {n_clicks}')
-

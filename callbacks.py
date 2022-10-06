@@ -7,6 +7,7 @@ from ta import momentum
 from ta.trend import MACD
 from plotly.subplots import make_subplots
 
+
 def register_callbacks(app):
     @app.callback(
         Output('product-chart', 'figure'),
@@ -51,10 +52,8 @@ def register_callbacks(app):
         fig1 = make_subplots(rows=3, cols=1, shared_xaxes=True,
                              vertical_spacing=0.01,
                              row_heights=[0.8, 0.2, 0.15],
-                             specs=[[{"secondary_y": True}],[{"secondary_y": True}],[{"secondary_y": True}]
-                                    ]
+                             specs=[[{"secondary_y": True}],[{"secondary_y": True}],[{"secondary_y": True}]]
                              )
-
         fig1.add_trace(go.Candlestick(x=df['timestamp'],
                                      open=df['price_open'],
                                      high=df['price_high'],
@@ -75,8 +74,7 @@ def register_callbacks(app):
                               y=df['volume'],
                               name='Volume',
                               marker={'color': df['color']}),
-                       secondary_y=True)
-
+                                secondary_y=True)
         fig1.add_trace(go.Bar(x=df['timestamp'],
                              y=macd.macd_diff()
                              ), row=2, col=1)
@@ -88,7 +86,6 @@ def register_callbacks(app):
                                  y=macd.macd_signal(),
                                  line=dict(color='red', width=1)
                                  ), row=2, col=1)
-
         fig1.add_trace(go.Scatter(x=df['timestamp'],
                                  y=df['rsi'],
                                  mode="lines",
@@ -96,8 +93,8 @@ def register_callbacks(app):
                                  row=3, col=1)
 
         fig1.update_layout(height=900,
-                          showlegend=False,
-                          xaxis_rangeslider_visible=False)
+                           showlegend=False,
+                           xaxis_rangeslider_visible=False)
 
         fig1.update_yaxes(title_text="<b>Price</b>", row=1, col=1)
         fig1.update_yaxes(title_text="<b>Volume</b>", range=[0, max_volume * 5], row=1, col=1, secondary_y=True)
@@ -129,4 +126,4 @@ def register_callbacks(app):
         parse = json.loads(response.text)
         price_val = parse['price']
 
-        return f'{now}, Jeff. The price of {product_id} is {price_val} {denomination}.'
+        return f'{now}. The price of {product_id} is {price_val} {denomination}.'
