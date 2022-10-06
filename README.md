@@ -9,7 +9,7 @@ All scripts are written in Python3 and have been tested with versions that are n
 Simply clone the repo to run scripts from your command line.
 
 ```bash
-git clone REPOHERE
+git clone https://github.com/jc-cb/insto-trading-app-py
 ```
 
 In order to run this, you will need to install a few dependencies which can be done by running: 
