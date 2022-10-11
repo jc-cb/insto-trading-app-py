@@ -2,28 +2,18 @@ import json, requests
 import plotly.graph_objects as go
 import pandas as pd
 from dash import Input, Output
-from datetime import datetime
 from ta import momentum
 from ta.trend import MACD
 from plotly.subplots import make_subplots
 
-
-def register_callbacks(app):
+def register_graph(app):
     @app.callback(
         Output('product-chart', 'figure'),
         Input('product-switcher', 'value'),
         Input('gran-switcher', 'value'))
     def update_output(product_selection, granularity_selection):
         product_id = product_selection
-        gran_dict = {
-            '1m': 60,
-            '5m': 300,
-            '15m': 900,
-            '1h': 3600,
-            '6h': 21600,
-            '1d': 86400
-        }
-        granularity = gran_dict.get(granularity_selection)
+        granularity = granularity_selection
         url = f'https://api.exchange.coinbase.com/products/{product_id}/candles?granularity={str(granularity)}'
         headers = {
             'Accept': 'application/json'
@@ -101,29 +91,3 @@ def register_callbacks(app):
         fig1.update_yaxes(title_text="<b>MACD</b>", showgrid=False, row=2, col=1)
         fig1.update_yaxes(title_text="<b>RSI</b>", row=3, col=1)
         return fig1
-
-    # UPDATE PRICE BASED ON PRODUCT
-    @app.callback(
-        Output('price-ref', 'children'),
-        Input('product-switcher', 'value'))
-    def update_price(product_selection):
-        product_id = product_selection
-        denomination = product_id[-3:]
-
-        now = datetime.now().strftime('%H:%M:%S')
-        if '06:00:00' < now < '12:00:00':
-            now = 'Good morning'
-        elif now < '18:00:00':
-            now = 'Good afternoon'
-        else:
-            now = 'Good evening'
-
-        url = f'https://api.exchange.coinbase.com/products/{product_id}/ticker'
-        headers = {
-            'Accept': 'application/json'
-        }
-        response = requests.get(url, headers=headers)
-        parse = json.loads(response.text)
-        price_val = parse['price']
-
-        return f'{now}. The price of {product_id} is {price_val} {denomination}.'
