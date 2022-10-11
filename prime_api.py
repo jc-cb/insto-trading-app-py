@@ -4,10 +4,23 @@ import hashlib
 import time
 import base64
 import uuid
+import os
 import requests
 from urllib.parse import urlparse
 from dash import Input, Output, State
-from keys import PORTFOLIO_ID, API_KEY, PASSPHRASE, SECRET_KEY
+from dotenv import load_dotenv
+
+load_dotenv()
+
+API_KEY = os.environ.get('API_KEY')
+SECRET_KEY = os.environ.get('SECRET_KEY')
+PASSPHRASE = os.environ.get('PASSPHRASE')
+PORTFOLIO_ID = os.environ.get('PORTFOLIO_ID')
+
+print(API_KEY)
+print(SECRET_KEY)
+print(PASSPHRASE)
+print(PORTFOLIO_ID)
 
 balanceEndpoint = f'https://api.prime.coinbase.com/v1/portfolios/{PORTFOLIO_ID}/balances?balance_type=TRADING_BALANCES&symbols='
 orderEndpoint = f'https://api.prime.coinbase.com/v1/portfolios/{PORTFOLIO_ID}/order'

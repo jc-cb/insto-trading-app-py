@@ -9,5 +9,4 @@
 .idea
 .envrc
 .direnv/
-keys.py
 .DS_Store
