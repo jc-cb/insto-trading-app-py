@@ -16,9 +16,12 @@ In order to run this, you will need to be running at least Python 3.8 so that yo
 ```
 pip install -r requirements.txt
 ```
-You will also need API key credentials within a valid Coinbase Prime portfolio in order to use this application.
+You will also need API key credentials from a valid Coinbase Prime portfolio in order to use this application via plugging them in as environment variables.
 
-After adding your keys to ``keys_example.py``, rename this file to ``keys.py``. 
+You will need to open and add your credentials to ``example.env``, then run this command to rename that file:
+```
+cp example.env .env
+```
 
 You can now run the program with: 
 
