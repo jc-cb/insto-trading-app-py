@@ -1,4 +1,4 @@
-from dash import Dash, html, dcc
+from dash import html, dcc
 
 layout = html.Div(children=[
     html.H1(children='Coinbase Prime trading application'),

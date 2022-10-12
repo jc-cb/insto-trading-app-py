@@ -1,6 +1,6 @@
-from dash import Dash, html, dcc
-from graph_callback import register_graph
-from price_callback import register_price
+from dash import Dash
+from callback_graph import register_graph
+from callback_price import register_price
 from prime_api import prime_calls
 from layout import layout
 

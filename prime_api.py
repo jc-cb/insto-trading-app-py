@@ -17,18 +17,17 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 PASSPHRASE = os.environ.get('PASSPHRASE')
 PORTFOLIO_ID = os.environ.get('PORTFOLIO_ID')
 
-print(API_KEY)
-print(SECRET_KEY)
-print(PASSPHRASE)
-print(PORTFOLIO_ID)
-
 balanceEndpoint = f'https://api.prime.coinbase.com/v1/portfolios/{PORTFOLIO_ID}/balances?balance_type=TRADING_BALANCES&symbols='
 orderEndpoint = f'https://api.prime.coinbase.com/v1/portfolios/{PORTFOLIO_ID}/order'
 
+
 def make_prime_call(uri, method, body={}):
+    """
+    make_prime_call generates and submits requests to Coinbase Prime API
+    """
     timestamp = str(int(time.time()))
     url_path = urlparse(uri).path
-    # need to update to handle if body
+
     if len(body) == 0:
         message = timestamp + method + url_path
     else:
@@ -54,11 +53,22 @@ def make_prime_call(uri, method, body={}):
 
 
 def make_balance_call(asset):
+    """
+    make_balance_call generates and places balance request using make_prime_call
+    """
     uri = f'{balanceEndpoint}{asset}'
     return make_prime_call(uri, 'GET')
 
 
 def make_order_call(amount, buysell, asset):
+    """
+    make_order_call generates orders payload to be used by make_prime_call
+
+    :param amount: derived from prime_calls
+    :param buysell: derived from prime_calls
+    :param asset: derived from prime_calls
+    :return:
+    """
     client_order_id = uuid.uuid4()
 
     payload = {
@@ -74,6 +84,9 @@ def make_order_call(amount, buysell, asset):
 
 
 def prime_calls(app):
+    """
+    prime_calls orchestrates balance refreshes and order placement when products are switched in the UI or trades are placed
+    """
     @app.callback(
         Output('portfolio-bal', 'children'),
         Input('product-switcher', 'value'))
@@ -82,13 +95,13 @@ def prime_calls(app):
         pair1 = product_selection.split('-')[0]
         pair2 = product_selection.split('-')[1]
 
-        newBal1 = make_balance_call(pair1)
-        balance1 = newBal1['balances'][0]['amount']
+        newbal1 = make_balance_call(pair1)
+        balance1 = newbal1['balances'][0]['amount']
         if pair1 == 'USD':
             balance1 = '$'+balance1[:6]
 
-        newBal2 = make_balance_call(pair2)
-        balance2 = newBal2['balances'][0]['amount']
+        newbal2 = make_balance_call(pair2)
+        balance2 = newbal2['balances'][0]['amount']
         if pair2 == 'USD':
             balance2 = '$'+balance2[:6]
         return f'Your {pair1} balance is {balance1}. Your {pair2} balance is {balance2}.'
