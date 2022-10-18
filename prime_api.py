@@ -7,7 +7,7 @@ import uuid
 import os
 import requests
 from urllib.parse import urlparse
-from dash import Input, Output, State
+from dash import Input, Output, State, ctx
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -19,6 +19,7 @@ PORTFOLIO_ID = os.environ.get('PORTFOLIO_ID')
 
 balanceEndpoint = f'https://api.prime.coinbase.com/v1/portfolios/{PORTFOLIO_ID}/balances?balance_type=TRADING_BALANCES&symbols='
 orderEndpoint = f'https://api.prime.coinbase.com/v1/portfolios/{PORTFOLIO_ID}/order'
+getOrderEndpoint = f'https://api.prime.coinbase.com/v1/portfolios/{PORTFOLIO_ID}/orders/'
 
 
 def make_prime_call(uri, method, body={}):
@@ -59,15 +60,17 @@ def make_balance_call(asset):
     uri = f'{balanceEndpoint}{asset}'
     return make_prime_call(uri, 'GET')
 
+def make_get_order_call(order_id):
+    """
+
+    """
+    uri = f'{getOrderEndpoint}{order_id}'
+    return make_prime_call(uri, 'GET')
+
 
 def make_order_call(amount, buysell, asset):
     """
     make_order_call generates orders payload to be used by make_prime_call
-
-    :param amount: derived from prime_calls
-    :param buysell: derived from prime_calls
-    :param asset: derived from prime_calls
-    :return:
     """
     client_order_id = uuid.uuid4()
 
@@ -80,7 +83,33 @@ def make_order_call(amount, buysell, asset):
         'base_quantity': amount
     }
     parsed_response = make_prime_call(orderEndpoint, 'POST', payload)
-    return parsed_response
+    order_id = parsed_response['order_id']
+
+    order_details = make_get_order_call(order_id)
+    order_details = order_details['order']
+
+    order_details_id = order_details['id']
+    order_details_product = order_details['product_id']
+    order_details_side = order_details['side']
+    order_details_qty = order_details['base_quantity']
+
+    return f'Order details: {order_details_product} {order_details_side} {order_details_qty}. Order ID: {order_details_id}'
+
+
+def generate_new_balance(product_selection):
+    pair1 = product_selection.split('-')[0]
+    pair2 = product_selection.split('-')[1]
+    newbal1 = make_balance_call(pair1)
+    balance1 = newbal1['balances'][0]['amount']
+    if pair1 == 'USD':
+        balance1 = '$' + balance1[:6]
+
+    newbal2 = make_balance_call(pair2)
+    balance2 = newbal2['balances'][0]['amount']
+    if pair2 == 'USD':
+        balance2 = '$' + balance2[:6]
+
+    return f'Your {pair1} balance is {balance1}. Your {pair2} balance is {balance2}.'
 
 
 def prime_calls(app):
@@ -88,31 +117,40 @@ def prime_calls(app):
     prime_calls orchestrates balance refreshes and order placement when products are switched in the UI or trades are placed
     """
     @app.callback(
-        Output('portfolio-bal', 'children'),
-        Input('product-switcher', 'value'))
-    def update_balance(product_selection):
-        time.sleep(0.5)
-        pair1 = product_selection.split('-')[0]
-        pair2 = product_selection.split('-')[1]
-
-        newbal1 = make_balance_call(pair1)
-        balance1 = newbal1['balances'][0]['amount']
-        if pair1 == 'USD':
-            balance1 = '$'+balance1[:6]
-
-        newbal2 = make_balance_call(pair2)
-        balance2 = newbal2['balances'][0]['amount']
-        if pair2 == 'USD':
-            balance2 = '$'+balance2[:6]
-        return f'Your {pair1} balance is {balance1}. Your {pair2} balance is {balance2}.'
-
-    @app.callback(
-        Output('buy-sell-response', 'children'),
+        [Output('buy-sell-response', 'children'),
+         Output('amount-box', 'value')],
         State('amount-box', 'value'),
         State('buy-sell-toggle', 'value'),
         State('product-switcher', 'value'),
-        Input('submit-button', 'n_clicks'))
+        Input('submit-button', 'n_clicks'), prevent_initial_call=True)
     def update_buysell(amount, buysell, asset, n_clicks):
         if n_clicks:
-            parsed_response = make_order_call(amount, buysell, asset)
-            return json.dumps(parsed_response, indent=3)
+            order_response = make_order_call(amount, buysell, asset)
+            return order_response, ''
+
+    @app.callback(
+        Output('portfolio-bal', 'children'),
+        Input('product-switcher', 'value'),
+        Input('portfolio-bal', 'children'),
+        Input('submit-button', 'n_clicks'))
+    def update_balance(product_selection, portfolio_bal, n_clicks):
+        balances = generate_new_balance(product_selection)
+
+        i = 0
+        if portfolio_bal is not None:
+            while i < 3:
+                bal = balances.split('. Your')[0]
+                ref = portfolio_bal.split('. Your')[0]
+                if bal == ref:
+                    time.sleep(.2)
+                    balances = generate_new_balance(product_selection)
+                    i = i + 1
+                    bal = balances.split('. Your')[0]
+                else:
+                    break
+
+        return balances
+
+
+
+
