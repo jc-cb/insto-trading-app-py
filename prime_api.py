@@ -100,17 +100,20 @@ def make_order_call(amount, buysell, asset):
         "base_quantity": amount,
     }
     parsed_response = make_prime_call(orderEndpoint, "POST", payload)
-    order_id = parsed_response["order_id"]
+    if parsed_response['message']:
+        return f"error: {parsed_response}"
+    else:
+        order_id = parsed_response["order_id"]
 
-    order_details = make_get_order_call(order_id)
-    order_details = order_details["order"]
+        order_details = make_get_order_call(order_id)
+        order_details = order_details["order"]
 
-    order_get_id = order_details["id"]
-    order_get_product = order_details["product_id"]
-    order_get_side = order_details["side"]
-    order_get_qty = order_details["base_quantity"]
+        order_get_id = order_details["id"]
+        order_get_product = order_details["product_id"]
+        order_get_side = order_details["side"]
+        order_get_qty = order_details["base_quantity"]
 
-    return f"Order details: {order_get_product} {order_get_side} {order_get_qty}. Order ID: {order_get_id}"
+        return f"Order details: {order_get_product} {order_get_side} {order_get_qty}. Order ID: {order_get_id}"
 
 
 def generate_new_balance(product_selection):
